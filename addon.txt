@@ -1,0 +1,9 @@
+"AddonInfo"
+{
+	"name"		"MunSpeak"
+	"version"	"1"
+	"up_date"	"n/a"
+	"author_name"	"Muneris"
+	"author_email"	"n/a"
+	"author_url"	"http://www.blueorifice.com"
+}
