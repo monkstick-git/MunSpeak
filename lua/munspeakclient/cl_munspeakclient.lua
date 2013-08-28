@@ -1,4 +1,5 @@
 local playerChannel = "";
+local Channels = {}
 
 function MunSpeakMute(ply)
 local PlayerEnt = ply
@@ -33,7 +34,10 @@ function MunSpeakLoop()
 			if(v == LocalPlayer()) then continue end
 
 			local targetChannel = v:GetNWString("channel")
-
+				if(IsValid(MunSpeakPanel)) then
+					
+				end
+				
 			if(not v.lastChannel or v.lastChannel != targetChannel) then
 				
 				if(v.lastChannel == playerChannel) then
@@ -60,3 +64,54 @@ function MunSpeakLoop()
 end
 
 timer.Create("MunSpeakLoop",1,0,MunSpeakLoop)
+
+ 
+net.Receive("MunSpeakChannels",function()
+Channels = net.ReadTable()
+PrintTable(Channels)
+end)
+
+net.Receive("MunSpeakShowUi",function()
+ShowPanel()
+end)
+
+function ShowPanel()
+
+	MunSpeakPanel = vgui.Create( "DFrame" )
+	MunSpeakPanel:SetPos( 50, 50 )
+	MunSpeakPanel:SetSize( 310, 340 )
+	MunSpeakPanel:SetTitle( "MunSpeak - Version 0.1" )
+	MunSpeakPanel:SetVisible( true )
+	MunSpeakPanel:SetDraggable( true )
+	MunSpeakPanel:ShowCloseButton( true )
+	MunSpeakPanel:MakePopup()
+	 
+	MunSpeakParent = vgui.Create( "DTree", MunSpeakPanel )
+	 
+	MunSpeakParent:SetPos( 5, 30 )
+	MunSpeakParent:SetPadding( 5 )
+	MunSpeakParent:SetSize( 300, 300 )
+
+
+	for k,v in pairs(Channels) do
+		local MunSpeakChild = MunSpeakParent:AddNode( k ,"icon16/folder_user.png")
+	
+	for key,value in pairs(v.Members) do
+		local TempNick = "nil"
+		if(value == NULL) then MsgN("VALUE NOT FUCKING VALID") else TempNick = value:Nick() end
+		local cnode = MunSpeakChild:AddNode(TempNick,"icon16/user.png")
+--	print(key.."  "..value:Nick())
+	end
+	
+	end
+end
+
+hook.Add("Initialize","MunSpeakInit",function() timer.Simple(2,ShowPanel) print("SHOWING THE PANEL") end)
+
+	-- for k,v in pairs(Channels) do
+		-- local MunSpeakChild = MunSpeakParent:AddNode( k )
+			-- for k1,v1 in pairs(v) do
+				-- A=A+1
+				-- local cnode = MunSpeakChild:AddNode(v1[A]:Nick())
+			-- end
+	-- end
