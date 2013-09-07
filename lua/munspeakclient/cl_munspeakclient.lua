@@ -1,170 +1,134 @@
-local playerChannel = "";
-local Channels = {}
-local open = true
-local PanelX = 50
-local PanelY = 50
-local MouseX = 0
-local MouseY = 0
-
-function MunSpeakMute(ply)
-local PlayerEnt = ply
-	if(PlayerEnt:IsMuted( ) == false) then
-		PlayerEnt:SetMuted(true)
-		print("Muting "..PlayerEnt:Nick())
-	end
+function MunSpeakInit()
+	LP = LocalPlayer()
+	LP["MS"]={}
+	LP["MS"]["X"]=0
+	LP["MS"]["XX"]=0
+	LP["MS"]["H"]=0
+	LP["MS"]["HH"]=0
+	LP["MS"]["TH"]=0
+	LP["MS"]["THH"]=0
+	LP["MS"]["SI"]=""
+	LP["MS"]["BH"]=0
+	LP["MS"]["BHH"]=0
+	local open=false
 end
 
-function MunSpeakUnMute(ply)
-local PlayerEnt = ply
-	if(PlayerEnt:IsMuted( )) then
-		PlayerEnt:SetMuted(false)
-		print("Un Muting "..PlayerEnt:Nick())
-	end
+function MunSpeakGetChannels()
+	LP = LocalPlayer()
+	LP["Channels"] = net.ReadTable()
 end
 
-function MunSpeakLoop()
-	local channel = LocalPlayer():GetNWString("channel")
-	if(playerChannel != channel) then
-		
-		
-		chat.AddText(Color(0,0,200), "[MunTalk] You joined the channel " .. channel)
-		chat.AddText(Color(0,0,200), "[MunTalk] You left the channel " .. playerChannel)
+function MunSpeakShowUi()
+	LP = LocalPlayer()
 
-		playerChannel = channel;
-
+	if LP["MS"]==nil then
+		MunSpeakInit()
 	end
 	
-		for k,v in pairs(player.GetAll()) do
-
-			if(v == LocalPlayer()) then continue end
-
-			local targetChannel = v:GetNWString("channel")
-				if(IsValid(MunSpeakPanel)) then
-					
-				end
-				
-			if(not v.lastChannel or v.lastChannel != targetChannel) then
-				
-				if(v.lastChannel == playerChannel) then
-					
-					chat.AddText(Color(0,0,200), "[MunTalk] " .. v:Nick() .. " left your channel.")
-
-				elseif(targetChannel == playerChannel) then
-					
-					chat.AddText(Color(0,0,200), "[MunTalk] " .. v:Nick() .. " joined your channel.")
-
-				end
-
-				v.lastChannel = targetChannel
-
+	local MunSpeakUI = vgui.Create( "DFrame" )
+	open = true
+	MunSpeakUI:SetPos( -400,50 )
+	MunSpeakUI:SetSize( 400, ScrH()/2 )
+	MunSpeakUI:SetTitle( "MunSpeak 0.1" )
+	MunSpeakUI:SetVisible( true )
+	MunSpeakUI:SetDraggable( false )
+	MunSpeakUI:ShowCloseButton( true )
+	MunSpeakUI:MakePopup()
+	MunSpeakUI.Paint = function(self)
+		draw.RoundedBox( 4, 0, 0, MunSpeakUI:GetWide(),MunSpeakUI:GetTall(), Color(0,0,0,240) )
+	end
+	
+	function MunSpeakUI:Think()
+		if open==true then
+			LP["MS"]["XX"]=10
+		else
+			LP["MS"]["XX"]=-400
+		end
+		LP["MS"]["X"] = LP["MS"]["X"] + (LP["MS"]["XX"]-LP["MS"]["X"])/20
+		MunSpeakUI:SetPos(LP["MS"]["X"],10)
+	end
+	
+	function MunSpeakUI:OnClose()
+		open = false
+		LP["MS"]["X"]=-400
+		LP["MS"]["XX"]=-400
+		LP["MS"]["SI"]=""
+	end
+	
+	local MunTree = vgui.Create("DTree",MunSpeakUI)
+	MunTree:SetPos(10,40)
+	MunTree:SetSize(MunSpeakUI:GetWide()-20,MunSpeakUI:GetTall()-50)
+	for k,v in pairs(LP["Channels"]) do
+		if v["Password"]~=nil and string.len(v["Password"])>0 then
+			local ChannelNode = MunTree:AddNode(k,"icon16/bullet_key.png")
+			ChannelNode["Channel"]=k
+			for kk,vv in pairs(LP["Channels"][k]["Members"]) do
+				local PlayerNode = ChannelNode:AddNode(vv:GetName(),"icon16/user.png")
+				PlayerNode["Channel"]="Player"
 			end
-
-			
-			if(targetChannel != playerChannel) then
-				MunSpeakMute(v)
-			else
-				MunSpeakUnMute(v)
+		else
+			local ChannelNode = MunTree:AddNode(k,"icon16/bullet_go.png")
+			ChannelNode["Channel"]=k
+			for kk,vv in pairs(LP["Channels"][k]["Members"]) do
+				if IsValid(vv) then
+					local PlayerNode = ChannelNode:AddNode(vv:GetName(),"icon16/user.png")
+					PlayerNode["Channel"]="Player"
+				end
 			end
 		end
-end
-
-timer.Create("MunSpeakLoop",1,0,MunSpeakLoop)
-
-net.Receive("MunSpeakChannels",function()
-Channels = net.ReadTable()
-PrintTable(Channels)
-
-
-
-end)
-
-net.Receive("MunSpeakShowUi",function()
-ShowPanel()
-end)
-
-function ShowPanel()
-	
-	MunSpeakPanel = vgui.Create( "DFrame" )
-	MunSpeakPanel:SetPos( PanelX, PanelY )
-	MunSpeakPanel:SetSize( 450, 340 )
-	MunSpeakPanel:SetTitle( "MunSpeak - Version 0.1" )
-	MunSpeakPanel:SetVisible( true )
-	MunSpeakPanel:SetDraggable( true )
-	MunSpeakPanel:ShowCloseButton( true )
-	MunSpeakPanel:MakePopup()
-	function MunSpeakPanel:OnClose()
-	open = !open
-	PanelX, PanelY = MunSpeakPanel:GetBounds()
-	MouseX, MouseY = input.GetCursorPos( )
 	end
 	
-	MunSpeakJoin = vgui.Create("DButton", MunSpeakPanel)
-	MunSpeakJoin:SetPos( 340, 35 )
-	MunSpeakJoin:SetSize( 75, 30 )
-	MunSpeakJoin:SetText("Join")
-	function MunSpeakJoin.DoClick( self )
-	local Pass = ""
-	if(MunSpeakTextInput:GetValue() == "password...") then Pass = "" else Pass = MunSpeakTextInput:GetValue() end
-	if( MunSpeakParent:GetSelectedItem( )) then
+	MunTree.DoClick = function(self)
+		LP["MS"]["SI"]=MunTree:GetSelectedItem()["Channel"]
+		print(table.ToString(LP["Channels"]))
+	end
+	
+	function MunTree:Think()
+		if LP["MS"]["SI"]~="Player" and string.len(LP["MS"]["SI"])>0 then
+			LP["MS"]["THH"]=MunSpeakUI:GetTall()-170
+		else
+			LP["MS"]["THH"]=MunSpeakUI:GetTall()-50
+		end
+		LP["MS"]["TH"] = LP["MS"]["TH"] + (LP["MS"]["THH"]-LP["MS"]["TH"])/20
+		MunTree:SetSize(MunSpeakUI:GetWide()-20,LP["MS"]["TH"])
+	end
+	
+	local MunButtons = vgui.Create("DPanel",MunSpeakUI)
+	function MunButtons:Think()
+		MunButtons:SetPos(10,LP["MS"]["TH"]+60)
+		MunButtons:SetSize(MunSpeakUI:GetWide()-20,100)
+	end
+	
+	local MunPassword = vgui.Create("DTextEntry", MunButtons)
+	MunPassword:SetPos(10,55)
+	MunPassword:SetSize(MunSpeakUI:GetWide()-40,30)
+	MunPassword:SetVisible(true)
+	
+	local MunJoinButton = vgui.Create("DButton", MunButtons)
+	MunJoinButton:SetPos(10,10)
+	MunJoinButton:SetText("Join")
+	MunJoinButton.Paint = function(self)
+		draw.RoundedBox( 4, 0, 0, MunJoinButton:GetWide(),MunJoinButton:GetTall(), Color(50,255,50,255) )
+	end
+	MunJoinButton.DoClick = function(self)
 		net.Start("MunSpeakClientJoin")
-		net.WriteTable({LocalPlayer(),MunSpeakParent:GetSelectedItem( ).Channel,Pass})
-	else
-	
+		net.WriteTable({LocalPlayer(),LP["MS"]["SI"],MunPassword:GetValue()})
+		net.SendToServer()
+		MunSpeakUI:Close()
 	end
-	net.SendToServer()
-	MunSpeakPanel:Close()
-	timer.Simple(0.001,function() MunSpeakOpenUI() end)
-	end
-	
-	MunSpeakTextInput = vgui.Create( "DTextEntry", MunSpeakPanel )	-- create the form as a child of frame
-	MunSpeakTextInput:SetPos( 340, 75 )
-	MunSpeakTextInput:SetSize( 75, 30 )
-	MunSpeakTextInput:SetText( "password..." )
-	MunSpeakTextInput.OnEnter = function( self )
-	local Pass = ""
-	if(self:GetValue() == "password...") then Pass = "" else Pass = self:GetValue() end
-	if( MunSpeakParent:GetSelectedItem( )) then
-		net.Start("MunSpeakClientJoin")
-		net.WriteTable({LocalPlayer(),MunSpeakParent:GetSelectedItem( ).Channel,Pass})
-	else
-	
-	end
-	net.SendToServer()
-	MunSpeakPanel:Close()
-	timer.Simple(0.001,function() MunSpeakOpenUI() end)
-	--chat.AddText( self:GetValue() )	-- print the form's text as server text
+	function MunJoinButton:Think()
+		if LP["MS"]["SI"]~="" and LP["MS"]["SI"]~="Player" and string.len(LP["Channels"][LP["MS"]["SI"]]["Password"])>0 then
+			LP["MS"]["BHH"]=40
+		else
+			LP["MS"]["BHH"]=80
+		end
+		LP["MS"]["BH"] = LP["MS"]["BH"] + (LP["MS"]["BHH"]-LP["MS"]["BH"])/10
+		MunJoinButton:SetSize(MunSpeakUI:GetWide()-40,LP["MS"]["BH"])
 	end
 	
-	MunSpeakParent = vgui.Create( "DTree", MunSpeakPanel )
-	 
-	MunSpeakParent:SetPos( 5, 30 )
-	MunSpeakParent:SetPadding( 5 )
-	MunSpeakParent:SetSize( 300, 300 )
-	MunSpeakParent:SetExpanded(true)
-
-	for k,v in pairs(Channels) do
-		MunSpeakChild = MunSpeakParent:AddNode( k ,"icon16/folder_user.png")
-		MunSpeakChild.Channel = k
-		MunSpeakChild:SetExpanded(true)
-	for key,value in pairs(v.Members) do
-		local TempNick = "nil"
-		if(value == NULL) then MsgN("Value not Valid!") else TempNick = value:Nick() end
-		cnode = MunSpeakChild:AddNode(TempNick,"icon16/user.png")
-		cnode.Player = value
---	print(key.."  "..value:Nick())
-	end
-	
-	end
 end
 
-hook.Add("Initialize","MunSpeakInit",function() timer.Simple(2,ShowPanel) print("SHOWING THE PANEL") end)
 
-
-concommand.Add("munspeak", function()
-MunSpeakOpenUI()
-end)
-
-function MunSpeakOpenUI()
-	open = !open
-	if(open) then ShowPanel() gui.SetMousePos(MouseX, MouseY) else MouseX, MouseY = input.GetCursorPos( )	PanelX, PanelY = MunSpeakPanel:GetBounds() MunSpeakPanel:Close() end
-end
+hook.Add("InitPostEntity","MunSpeakInit",MunSpeakInit)
+net.Receive( "MunSpeakShowUi", MunSpeakShowUi )
+net.Receive( "MunSpeakChannels", MunSpeakGetChannels )
