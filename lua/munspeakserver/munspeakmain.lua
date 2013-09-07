@@ -4,6 +4,7 @@ MunSpeakAdmins = {}
 util.AddNetworkString("MunSpeakChannels")
 util.AddNetworkString("MunSpeakShowUi")
 util.AddNetworkString("MunSpeakClientJoin")
+util.AddNetworkString("MunSpeakCreateChannel")
 
 function MunSpeak.ChatMessages(ply,msg) -- Chat Messages
 	local Message = string.Explode(" ",msg)
@@ -275,6 +276,15 @@ local Channel = ClientTable[2]
 local Password = ClientTable[3]
 
 MunSpeak.JoinChannel(Player,Channel,Password)
+end)
+
+net.Receive("MunSpeakCreateChannel",function() -- Handles the client creating a channel via UI
+local ClientTable = net.ReadTable()
+local Player = ClientTable[1]
+local Channel = ClientTable[2]
+local Password = ClientTable[3]
+
+MunSpeak.CreateChannel(Player,Channel,Password)
 end)
 
 hook.Add("PlayerSay", "munspeakcreate", MunSpeak.ChatMessages) -- When / commands are ran, this hook handles it.
