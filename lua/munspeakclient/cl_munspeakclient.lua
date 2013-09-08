@@ -1,19 +1,67 @@
 function MunSpeakCheck()
-	for a,b in pairs(player.GetAll()) do
-		if b~=LocalPlayer() then
-			if IsValid(b) and table.HasValue(LP["Channels"][LP["Channel"]]["Members"],b)==true and b:IsMuted() then
-				b:SetMuted(false)
-			end
-			if IsValid(b) and table.HasValue(LP["Channels"][LP["Channel"]]["Members"],b)==false and b:IsMuted()==false then
-				b:SetMuted(true)
-			end
+	LP = LocalPlayer()
+	LP["Channel"]=(LP:GetNWString("Channel") or "Default")
+	for k,v in pairs(player.GetAll()) do
+		if IsValid(v) and (v:GetNWString("Channel")~=LP["Channel"] and v~=LocalPlayer()) and v:IsMuted()==false then
+			v:SetMuted(true)
 		end
+		if IsValid(v) and (v:GetNWString("Channel")==LP["Channel"] or v==LocalPlayer()) and v:IsMuted()==true then
+			v:SetMuted(false)
+		end
+	end
+end
+
+function MunContext()
+	LP["CM"]=vgui.Create("DFrame")
+	LP["CM"]:SetTitle("")
+	LP["CM"]:SetPos(20,220)
+	LP["CM"]:SetSize(58,78)
+	LP["CM"]:SetVisible(true)
+	LP["CM"]:ShowCloseButton(false)
+	LP["CM"]:MakePopup()
+	
+	LP["CM"].Paint = function(self)
+		draw.RoundedBox( 4, 0, 0, LP["CM"]:GetWide(),LP["CM"]:GetTall()-20, Color(255,255,255,150) )
+		draw.RoundedBox( 4, 2, 2, LP["CM"]:GetWide()-4,LP["CM"]:GetTall()-24, Color(0,0,0,150) )
+		surface.SetFont("ChatFont")
+		surface.CreateFont( "ContextFont", {
+		font = "Arial",
+		size = 15,
+		weight = 100,
+		blursize = 0,
+		scanlines = 0,
+		antialias = true,
+		underline = false,
+		italic = false,
+		strikeout = false,
+		symbol = false,
+		rotary = false,
+		shadow = true,
+		additive = false,
+		outline = false
+} )
+		draw.SimpleText("MunSpeak", "ContextFont", LP["CM"]:GetWide()/2,LP["CM"]:GetTall()-10, Color(255,255,255,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+	end
+	local BImg = vgui.Create("DImageButton",LP["CM"])
+	BImg:SetPos(10,10)
+	BImg:SetSize(38,38)
+	BImg:SetImage("icon16/server_connect.png")
+	BImg.DoClick = function(self)
+		LocalPlayer():ConCommand("MunSpeak")
+	end
+end
+
+function MunContextClose()
+	if LP["CM"]~=nil then
+		LP["CM"]:Close()
+		LP["CM"]=nil
 	end
 end
 
 function MunSpeakInit()
 	LP = LocalPlayer()
 	LP["MS"]={}
+	LP["Open"]=false
 	LP["MS"]["X"]=0
 	LP["MS"]["XX"]=0
 	LP["MS"]["H"]=0
@@ -75,6 +123,7 @@ function MunSpeakShowUi()
 		LP["MS"]["XX"]=-400
 		LP["MS"]["SI"]=""
 		LP["MS"]["Expand"]=false
+		LP["Open"]=false
 	end
 	
 	local MunTree = vgui.Create("DTree",MunSpeakUI)
@@ -85,8 +134,10 @@ function MunSpeakShowUi()
 			local ChannelNode = MunTree:AddNode(k,"icon16/bullet_key.png")
 			ChannelNode["Channel"]=k
 			for kk,vv in pairs(LP["Channels"][k]["Members"]) do
+				if IsValid(vv) then
 				local PlayerNode = ChannelNode:AddNode(vv:GetName(),"icon16/user.png")
 				PlayerNode["Channel"]="Player"
+				end
 			end
 		else
 			if k~="Default" then
@@ -251,7 +302,10 @@ function MunSpeakShowUi()
 	end
 end
 
+concommand.Add("munspeak",MunSpeakShowUi)
 hook.Add("Tick","MunSpeakMute",MunSpeakCheck)
 hook.Add("InitPostEntity","MunSpeakInit",MunSpeakInit)
+hook.Add("OnContextMenuOpen","MunContextOpen",MunContext)
+hook.Add("OnContextMenuClose","MunContextClose",MunContextClose)
 net.Receive( "MunSpeakShowUi", MunSpeakShowUi )
 net.Receive( "MunSpeakChannels", MunSpeakGetChannels )
