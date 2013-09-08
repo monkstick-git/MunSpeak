@@ -219,6 +219,7 @@ function MunSpeakShowUi()
 			end
 			net.SendToServer()
 		end
+		MunSpeakUI:Close()
 	end
 	
 	local MunStatus1 = vgui.Create("DImage",MunExtraPanel)
