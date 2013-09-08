@@ -10,6 +10,7 @@ function MunSpeakInit()
 	LP["MS"]["SI"]=""
 	LP["MS"]["BH"]=0
 	LP["MS"]["BHH"]=0
+	LP["MS"]["Expand"]=false
 	local open=false
 end
 
@@ -28,7 +29,6 @@ function MunSpeakShowUi()
 	local MunSpeakUI = vgui.Create( "DFrame" )
 	open = true
 	MunSpeakUI:SetPos( -400,50 )
-	MunSpeakUI:SetSize( 400, ScrH()/2 )
 	MunSpeakUI:SetTitle( "MunSpeak 0.1" )
 	MunSpeakUI:SetVisible( true )
 	MunSpeakUI:SetDraggable( false )
@@ -46,6 +46,13 @@ function MunSpeakShowUi()
 		end
 		LP["MS"]["X"] = LP["MS"]["X"] + (LP["MS"]["XX"]-LP["MS"]["X"])/20
 		MunSpeakUI:SetPos(LP["MS"]["X"],10)
+		if LP["MS"]["Expand"] then
+			LP["MS"]["HH"]=ScrW()/2.5
+		else
+			LP["MS"]["HH"]=ScrW()/4
+		end
+		LP["MS"]["H"] = LP["MS"]["H"] + (LP["MS"]["HH"]-LP["MS"]["H"])/20
+		MunSpeakUI:SetSize( LP["MS"]["H"], ScrH()/2 )
 	end
 	
 	function MunSpeakUI:OnClose()
@@ -53,6 +60,7 @@ function MunSpeakShowUi()
 		LP["MS"]["X"]=-400
 		LP["MS"]["XX"]=-400
 		LP["MS"]["SI"]=""
+		LP["MS"]["Expand"]=false
 	end
 	
 	local MunTree = vgui.Create("DTree",MunSpeakUI)
@@ -67,7 +75,11 @@ function MunSpeakShowUi()
 				PlayerNode["Channel"]="Player"
 			end
 		else
-			local ChannelNode = MunTree:AddNode(k,"icon16/bullet_go.png")
+			if k~="Default" then
+				ChannelNode = MunTree:AddNode(k,"icon16/bullet_go.png")
+			else
+				ChannelNode = MunTree:AddNode(k,"icon16/server.png")
+			end
 			ChannelNode["Channel"]=k
 			for kk,vv in pairs(LP["Channels"][k]["Members"]) do
 				if IsValid(vv) then
@@ -82,7 +94,6 @@ function MunSpeakShowUi()
 		LP["MS"]["SI"]=MunTree:GetSelectedItem()["Channel"]
 		print(table.ToString(LP["Channels"]))
 	end
-	
 	function MunTree:Think()
 		if LP["MS"]["SI"]~="Player" and string.len(LP["MS"]["SI"])>0 then
 			LP["MS"]["THH"]=MunSpeakUI:GetTall()-170
@@ -90,7 +101,7 @@ function MunSpeakShowUi()
 			LP["MS"]["THH"]=MunSpeakUI:GetTall()-50
 		end
 		LP["MS"]["TH"] = LP["MS"]["TH"] + (LP["MS"]["THH"]-LP["MS"]["TH"])/20
-		MunTree:SetSize(MunSpeakUI:GetWide()-20,LP["MS"]["TH"])
+			MunTree:SetSize(ScrW()/4-20,LP["MS"]["TH"])
 	end
 	
 	local MunButtons = vgui.Create("DPanel",MunSpeakUI)
@@ -106,9 +117,11 @@ function MunSpeakShowUi()
 	
 	local MunJoinButton = vgui.Create("DButton", MunButtons)
 	MunJoinButton:SetPos(10,10)
-	MunJoinButton:SetText("Join")
+	MunJoinButton:SetText("")
 	MunJoinButton.Paint = function(self)
-		draw.RoundedBox( 4, 0, 0, MunJoinButton:GetWide(),MunJoinButton:GetTall(), Color(50,255,50,255) )
+		draw.RoundedBox( 12, 0, 0, MunJoinButton:GetWide(),MunJoinButton:GetTall(), Color(150,150,150,255) )
+		surface.SetFont("ChatFont")
+		draw.SimpleText("Join", "ChatFont", MunJoinButton:GetWide()/2,MunJoinButton:GetTall()/2, Color(255,255,255,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 	end
 	MunJoinButton.DoClick = function(self)
 		net.Start("MunSpeakClientJoin")
@@ -119,13 +132,106 @@ function MunSpeakShowUi()
 	function MunJoinButton:Think()
 		if LP["MS"]["SI"]~="" and LP["MS"]["SI"]~="Player" and string.len(LP["Channels"][LP["MS"]["SI"]]["Password"])>0 then
 			LP["MS"]["BHH"]=40
+			MunPassword:SetVisible(true)
 		else
 			LP["MS"]["BHH"]=80
+			MunPassword:SetVisible(false)
 		end
 		LP["MS"]["BH"] = LP["MS"]["BH"] + (LP["MS"]["BHH"]-LP["MS"]["BH"])/10
 		MunJoinButton:SetSize(MunSpeakUI:GetWide()-40,LP["MS"]["BH"])
 	end
 	
+	local MunExpandButton = vgui.Create("DButton",MunSpeakUI)
+	MunExpandButton:SetSize(10,60)
+	MunExpandButton:SetText("")
+	function MunExpandButton:Think()
+		MunExpandButton:SetPos(MunSpeakUI:GetWide()-MunExpandButton:GetWide(),MunSpeakUI:GetTall()/2-MunExpandButton:GetTall()/2)
+	end
+	MunExpandButton.Paint = function(self)
+		draw.RoundedBox( 4, 0, 0, MunExpandButton:GetWide(),MunExpandButton:GetTall(), Color(150,150,150,255) )
+		surface.SetFont("ChatFont")
+		if LP["MS"]["Expand"] then
+		draw.SimpleText("<", "ChatFont", MunExpandButton:GetWide()/2,MunExpandButton:GetTall()/2, Color(255,255,255,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		else
+		draw.SimpleText(">", "ChatFont", MunExpandButton:GetWide()/2,MunExpandButton:GetTall()/2, Color(255,255,255,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		end
+	end
+	MunExpandButton.DoClick = function(self)
+		LP["MS"]["Expand"] = !LP["MS"]["Expand"]
+	end
+	
+	local MunExtraPanel = vgui.Create("DPanel",MunSpeakUI)
+	MunExtraPanel:SetPos(ScrW()/4,40)
+	function MunExtraPanel:Think()
+		MunExtraPanel:SetSize(ScrW()/4/2+35,160)
+	end
+	
+	local prevar1="Channel Name"
+	local prevar2="Channel Password (optional)"
+	LP["correct1"]=false
+	LP["correct2"]=false
+	
+	local MunChannelName = vgui.Create("DTextEntry",MunExtraPanel)
+	MunChannelName:SetPos(10,10)
+	MunChannelName:SetText(prevar1)
+	function MunChannelName:Think()
+		MunChannelName:SetSize(MunExtraPanel:GetWide()-50,30)
+	end
+	
+	local MunChannelPass = vgui.Create("DTextEntry",MunExtraPanel)
+	MunChannelPass:SetPos(10,50)
+	MunChannelPass:SetText(prevar2)
+	function MunChannelPass:Think()
+		MunChannelPass:SetSize(MunExtraPanel:GetWide()-50,30)
+	end
+	
+	local MunChannelMake = vgui.Create("DButton",MunExtraPanel)
+	MunChannelMake:SetPos(10,90)
+	MunChannelMake:SetText("Create Channel")
+	function MunChannelMake:Think()
+		MunChannelMake:SetSize(MunExtraPanel:GetWide()-20,60)
+	end
+	MunChannelMake.DoClick = function(self)
+		if LP["correct1"] and LP["correct2"] then
+			if MunChannelPass:GetValue()==prevar2 then
+				net.Start("MunSpeakCreateChannel")
+				print(table.ToString({LocalPlayer(),MunChannelName:GetValue(),MunChannelPass:GetValue()}))
+				net.WriteTable({LocalPlayer(),MunChannelName:GetValue(),""})
+			else
+				print(table.ToString({LocalPlayer(),MunChannelName:GetValue(),MunChannelPass:GetValue()}))
+				net.WriteTable({LocalPlayer(),MunChannelName:GetValue(),MunChannelPass:GetValue()})
+			end
+			net.SendToServer()
+		end
+	end
+	
+	local MunStatus1 = vgui.Create("DImage",MunExtraPanel)
+	MunStatus1:SetImage("icon16/tick.png")
+	MunStatus1:SizeToContents()
+	function MunStatus1:Think()
+		MunStatus1:SetPos(MunExtraPanel:GetWide()-30,15)
+		if string.len(MunChannelName:GetValue())>0 and LP["Channels"][MunChannelName:GetValue()]==nil and string.Explode("",MunChannelName:GetValue())[1]==string.upper(string.Explode("",MunChannelName:GetValue())[1]) then
+			MunStatus1:SetImage("icon16/accept.png")
+			LP["correct1"]=true
+		else
+			MunStatus1:SetImage("icon16/exclamation.png")
+			LP["correct1"]=false
+		end
+		MunStatus1:SizeToContents()
+	end
+	
+	local MunStatus2 = vgui.Create("DImage",MunExtraPanel)
+	function MunStatus2:Think()
+		MunStatus2:SetPos(MunExtraPanel:GetWide()-30,55)
+		if string.len(MunChannelName:GetValue())>0 and LP["Channels"][MunChannelName:GetValue()]==nil and MunChannelName:GetValue()~=prevar1 and string.len(MunChannelPass:GetValue())>0 then
+			MunStatus2:SetImage("icon16/accept.png")
+			LP["correct2"]=true
+		else
+			MunStatus2:SetImage("icon16/exclamation.png")
+			LP["correct2"]=false
+		end
+		MunStatus2:SizeToContents()
+	end
 end
 
 
