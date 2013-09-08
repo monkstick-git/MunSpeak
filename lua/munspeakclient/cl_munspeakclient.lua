@@ -1,4 +1,8 @@
 function MunSpeakCheck()
+	if LP["Channels"]==nil then
+		net.Start("MunSpeakRequestChannels")
+		net.SendToServer()
+	end
 	LP = LocalPlayer()
 	LP["Channel"]=(LP:GetNWString("Channel") or "Default")
 	for k,v in pairs(player.GetAll()) do
