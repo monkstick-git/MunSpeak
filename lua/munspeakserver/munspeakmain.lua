@@ -1,10 +1,11 @@
-﻿MunSpeak = {}
+MunSpeak = {}
 MunSpeakChannels = {}
 MunSpeakAdmins = {}
 util.AddNetworkString("MunSpeakChannels")
 util.AddNetworkString("MunSpeakShowUi")
 util.AddNetworkString("MunSpeakClientJoin")
 util.AddNetworkString("MunSpeakCreateChannel")
+util.AddNetworkString("MunSpeakRequestChannels")
 
 function MunSpeak.ChatMessages(ply,msg) -- Chat Messages
 	local Message = string.Explode(" ",msg)
@@ -212,6 +213,7 @@ function MunSpeak.ReadAdmins() -- Reads the MunSpeakAdmins.txt JSON string to ge
 end
 
 function MunSpeak.IsAdmin(ply)
+	if(not ply) then return "No player defined!" end
 	if(table.HasValue(MunSpeakAdmins,ply:SteamID()) == true) then
 		return true
 	else
@@ -227,8 +229,8 @@ end
 function MunSpeak.FindPlayer(target) -- Very useful function for finding a player with just a small string.  eg:  mun would find Muneris (the playerdata) else throw a chat error with more information.
 	local Target = 0
 	local TargetPlayer
-	local MunSpeakPlayerName = target
-	
+	local MunSpeakPlayerName
+	if(target) then MunSpeakPlayerName = target else return end
 	for k,v in pairs(player.GetAll()) do
 		if (string.find(string.lower(v:Name()), string.lower(MunSpeakPlayerName)))then 
 			Target = Target + 1
@@ -278,6 +280,10 @@ local Channel = ClientTable[2]
 local Password = ClientTable[3]
 
 MunSpeak.JoinChannel(Player,Channel,Password)
+end)
+
+net.Receive("MunSpeakRequestChannels",function()
+MunSpeak.SendChannels()
 end)
 
 net.Receive("MunSpeakCreateChannel",function() -- Handles the client creating a channel via UI
