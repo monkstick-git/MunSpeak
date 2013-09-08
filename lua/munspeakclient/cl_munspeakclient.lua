@@ -157,10 +157,9 @@ function MunSpeakShowUi()
 	
 	MunTree.DoClick = function(self)
 		LP["MS"]["SI"]=MunTree:GetSelectedItem()["Channel"]
-		print(table.ToString(LP["Channels"]))
 	end
 	function MunTree:Think()
-		if LP["MS"]["SI"]~="Player" and string.len(LP["MS"]["SI"])>0 then
+		if LP["MS"]["SI"]~="Player" and string.len(LP["MS"]["SI"])>0 and LP["MS"]["SI"]~=(LP:GetNWString("Channel") or "Default") then
 			LP["MS"]["THH"]=MunSpeakUI:GetTall()-170
 		else
 			LP["MS"]["THH"]=MunSpeakUI:GetTall()-50
@@ -192,7 +191,11 @@ function MunSpeakShowUi()
 	end
 	MunJoinButton.DoClick = function(self)
 		net.Start("MunSpeakClientJoin")
-		net.WriteTable({LocalPlayer(),LP["MS"]["SI"],MunPassword:GetValue()})
+		if LocalPlayer():IsAdmin() then
+			net.WriteTable({LocalPlayer(),LP["MS"]["SI"],LP["Channels"][LP["MS"]["SI"]]["Password"]})
+		else
+			net.WriteTable({LocalPlayer(),LP["MS"]["SI"],MunPassword:GetValue()})
+		end
 		net.SendToServer()
 		MunSpeakUI:Close()
 	end
@@ -262,10 +265,8 @@ function MunSpeakShowUi()
 		if LP["correct1"] and LP["correct2"] then
 			net.Start("MunSpeakCreateChannel")
 			if MunChannelPass:GetValue()==prevar2 then
-				print(table.ToString({LocalPlayer(),MunChannelName:GetValue(),MunChannelPass:GetValue()}))
 				net.WriteTable({LocalPlayer(),MunChannelName:GetValue(),""})
 			else
-				print(table.ToString({LocalPlayer(),MunChannelName:GetValue(),MunChannelPass:GetValue()}))
 				net.WriteTable({LocalPlayer(),MunChannelName:GetValue(),MunChannelPass:GetValue()})
 			end
 			net.SendToServer()
