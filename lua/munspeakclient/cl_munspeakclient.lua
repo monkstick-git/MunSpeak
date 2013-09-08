@@ -47,6 +47,7 @@ function MunSpeakInit()
 	LP["MS"]["BHH"]=0
 	LP["MS"]["Expand"]=false
 	local open=false
+	surface.PlaySound("hl1/fvox/voice_on.wav")
 end
 
 function MunSpeakGetChannels()
@@ -96,7 +97,7 @@ function MunSpeakShowUi()
 	local MunSpeakUI = vgui.Create( "DFrame" )
 	open = true
 	MunSpeakUI:SetPos( -400,50 )
-	MunSpeakUI:SetTitle( "MunSpeak 0.1" )
+	MunSpeakUI:SetTitle( "MunSpeak 0.9" )
 	MunSpeakUI:SetVisible( true )
 	MunSpeakUI:SetDraggable( false )
 	MunSpeakUI:ShowCloseButton( true )
@@ -142,6 +143,7 @@ function MunSpeakShowUi()
 				if IsValid(vv) then
 				local PlayerNode = ChannelNode:AddNode(vv:GetName(),"icon16/user.png")
 				PlayerNode["Channel"]="Player"
+				PlayerNode["Ply"]=vv
 				end
 			end
 		else
@@ -155,6 +157,7 @@ function MunSpeakShowUi()
 				if IsValid(vv) then
 					local PlayerNode = ChannelNode:AddNode(vv:GetName(),"icon16/user.png")
 					PlayerNode["Channel"]="Player"
+					PlayerNode["Ply"]=vv
 				end
 			end
 		end
@@ -162,6 +165,16 @@ function MunSpeakShowUi()
 	
 	MunTree.DoClick = function(self)
 		LP["MS"]["SI"]=MunTree:GetSelectedItem()["Channel"]
+		surface.PlaySound( "buttons/button14.wav" )
+	end
+	
+	MunTree.DoRightClick = function(self)
+		if MunTree:GetSelectedItem()~=nil and MunTree:GetSelectedItem()["Ply"]~=nil and IsValid(MunTree:GetSelectedItem()["Ply"]) then
+			net.Start("MunSpeakMovePlayer")
+			net.WriteTable({LocalPlayer(),MunTree:GetSelectedItem()["Ply"],"Default"})
+			net.SendToServer()
+		end
+		surface.PlaySound("buttons/button10.wav")
 	end
 	function MunTree:Think()
 		if LP["MS"]["SI"]~="Player" and string.len(LP["MS"]["SI"])>0 and LP["MS"]["SI"]~=(LP:GetNWString("Channel") or "Default") then
@@ -203,6 +216,7 @@ function MunSpeakShowUi()
 		end
 		net.SendToServer()
 		MunSpeakUI:Close()
+		surface.PlaySound("hl1/fvox/acquired.wav")
 	end
 	function MunJoinButton:Think()
 		if LP["MS"]["SI"]~="" and LP["MS"]["SI"]~="Player" and string.len(LP["Channels"][LP["MS"]["SI"]]["Password"])>0 then
@@ -233,6 +247,7 @@ function MunSpeakShowUi()
 	end
 	MunExpandButton.DoClick = function(self)
 		LP["MS"]["Expand"] = !LP["MS"]["Expand"]
+		surface.PlaySound("buttons/combine_button1.wav")
 	end
 	
 	local MunExtraPanel = vgui.Create("DPanel",MunSpeakUI)
@@ -276,6 +291,7 @@ function MunSpeakShowUi()
 			end
 			net.SendToServer()
 		end
+		surface.PlaySound("buttons/button5.wav")
 		MunSpeakUI:Close()
 	end
 	
