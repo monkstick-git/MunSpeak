@@ -7,6 +7,7 @@ util.AddNetworkString("MunSpeakClientJoin")
 util.AddNetworkString("MunSpeakCreateChannel")
 util.AddNetworkString("MunSpeakRequestChannels")
 util.AddNetworkString("MunSpeakMovePlayer")
+util.AddNetworkString("MunSpeakDeleteChannel")
 
 function MunSpeak.ChatMessages(ply,msg) -- Chat Messages
 	local Message = string.Explode(" ",msg)
@@ -281,6 +282,15 @@ function MunSpeak.CreateAdmin(ply,target)
 			PrintMessage(HUD_PRINTTALK,"You do not have permission to do that action.")
 	end
 end
+
+net.Receive("MunSpeakDeleteChannel",function()
+local ChannelTable = net.ReadTable()
+local Player = ChannelTable[1]
+local Channel = ChannelTable[2]
+
+MunSpeak.Delete(Player,Channel)
+
+end)
 
 net.Receive("MunSpeakClientJoin",function() -- Handles the client trying to join a channel via the UI
 local ClientTable = net.ReadTable()
