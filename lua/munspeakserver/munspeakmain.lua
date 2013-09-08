@@ -96,7 +96,6 @@ function MunSpeak.CreateChannel(ply,name,pass) -- Create channel.  PlayerData an
 		local ChannelPass = ""
 		name = string.Trim(name)
 		if(name == "") then return end
-		name = string.lower(name)
 		if(not pass) then ChannelPass = "" else ChannelPass = pass end
 		
 		if(not MunSpeakChannels[name]) then
