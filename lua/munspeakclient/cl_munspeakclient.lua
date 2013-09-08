@@ -11,20 +11,8 @@ function MunSpeakCheck()
 	end
 end
 
-function MunContext()
-	LP["CM"]=vgui.Create("DFrame")
-	LP["CM"]:SetTitle("")
-	LP["CM"]:SetPos(20,220)
-	LP["CM"]:SetSize(58,78)
-	LP["CM"]:SetVisible(true)
-	LP["CM"]:ShowCloseButton(false)
-	LP["CM"]:MakePopup()
-	
-	LP["CM"].Paint = function(self)
-		draw.RoundedBox( 4, 0, 0, LP["CM"]:GetWide(),LP["CM"]:GetTall()-20, Color(255,255,255,150) )
-		draw.RoundedBox( 4, 2, 2, LP["CM"]:GetWide()-4,LP["CM"]:GetTall()-24, Color(0,0,0,150) )
-		surface.SetFont("ChatFont")
-		surface.CreateFont( "ContextFont", {
+function MunSpeakInit()
+	surface.CreateFont( "ContextFont", {
 		font = "Arial",
 		size = 15,
 		weight = 100,
@@ -39,26 +27,8 @@ function MunContext()
 		shadow = true,
 		additive = false,
 		outline = false
-} )
-		draw.SimpleText("MunSpeak", "ContextFont", LP["CM"]:GetWide()/2,LP["CM"]:GetTall()-10, Color(255,255,255,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-	end
-	local BImg = vgui.Create("DImageButton",LP["CM"])
-	BImg:SetPos(10,10)
-	BImg:SetSize(38,38)
-	BImg:SetImage("icon16/server_connect.png")
-	BImg.DoClick = function(self)
-		LocalPlayer():ConCommand("MunSpeak")
-	end
-end
-
-function MunContextClose()
-	if LP["CM"]~=nil then
-		LP["CM"]:Close()
-		LP["CM"]=nil
-	end
-end
-
-function MunSpeakInit()
+	}
+	)
 	LP = LocalPlayer()
 	LP["MS"]={}
 	LP["Open"]=false
@@ -79,6 +49,37 @@ function MunSpeakGetChannels()
 	LP = LocalPlayer()
 	LP["Channels"] = net.ReadTable()
 	LP["Channel"] = (LP:GetNWString("Channel") or "Default")
+end
+
+function MunContext()
+	LP["CM"]=vgui.Create("DFrame")
+	LP["CM"]:SetTitle("")
+	LP["CM"]:SetPos(20,220)
+	LP["CM"]:SetSize(58,78)
+	LP["CM"]:SetVisible(true)
+	LP["CM"]:ShowCloseButton(false)
+	LP["CM"]:MakePopup()
+	
+	LP["CM"].Paint = function(self)
+		draw.RoundedBox( 4, 0, 0, LP["CM"]:GetWide(),LP["CM"]:GetTall()-20, Color(255,255,255,150) )
+		draw.RoundedBox( 4, 2, 2, LP["CM"]:GetWide()-4,LP["CM"]:GetTall()-24, Color(0,0,0,150) )
+		surface.SetFont("ChatFont")
+		draw.SimpleText("MunSpeak", "ContextFont", LP["CM"]:GetWide()/2,LP["CM"]:GetTall()-10, Color(255,255,255,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+	end
+	local BImg = vgui.Create("DImageButton",LP["CM"])
+	BImg:SetPos(10,10)
+	BImg:SetSize(38,38)
+	BImg:SetImage("icon16/server_connect.png")
+	BImg.DoClick = function(self)
+		LocalPlayer():ConCommand("MunSpeak")
+	end
+end
+
+function MunContextClose()
+	if LP["CM"]~=nil then
+		LP["CM"]:Close()
+		LP["CM"]=nil
+	end
 end
 
 function MunSpeakShowUi()
