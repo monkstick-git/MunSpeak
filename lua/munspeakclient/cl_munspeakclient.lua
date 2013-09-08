@@ -174,6 +174,13 @@ function MunSpeakShowUi()
 			net.WriteTable({LocalPlayer(),MunTree:GetSelectedItem()["Ply"],"Default"})
 			net.SendToServer()
 		end
+		
+		if MunTree:GetSelectedItem()~=nil and MunTree:GetSelectedItem()["Channel"]~=nil then
+			net.Start("MunSpeakDeleteChannel")
+			net.WriteTable({LocalPlayer(),MunTree:GetSelectedItem()["Channel"]})
+			net.SendToServer()
+			MunSpeakUI:Close()
+		end
 		surface.PlaySound("buttons/button10.wav")
 	end
 	function MunTree:Think()
