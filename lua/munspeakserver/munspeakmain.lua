@@ -6,6 +6,7 @@ util.AddNetworkString("MunSpeakShowUi")
 util.AddNetworkString("MunSpeakClientJoin")
 util.AddNetworkString("MunSpeakCreateChannel")
 util.AddNetworkString("MunSpeakRequestChannels")
+util.AddNetworkString("MunSpeakMovePlayer")
 
 function MunSpeak.ChatMessages(ply,msg) -- Chat Messages
 	local Message = string.Explode(" ",msg)
@@ -258,6 +259,14 @@ function MunSpeak.MovePlayer(ply,target,channel) -- ply is the player trying to 
 		ply:PrintMessage(HUD_PRINTTALK,"You do not have the sufficient permissions")
 	end
 end
+
+net.Receive("MunSpeakMovePlayer",function()
+local ClientTable = net.ReadTable()
+local Player = ClientTable[1]
+local Target = ClientTable[2]
+local Channel = ClientTable[3]
+MunSpeak.MovePlayer(Player,Target,Channel)
+end)
 
 function MunSpeak.CreateAdmin(ply,target)
 	if(ply:IsAdmin() and table.HasValue(MunSpeakAdmins,ply:SteamID()) == false ) then
