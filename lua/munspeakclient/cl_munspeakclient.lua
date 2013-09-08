@@ -1,3 +1,16 @@
+function MunSpeakCheck()
+	for a,b in pairs(player.GetAll()) do
+		if b~=LocalPlayer() then
+			if IsValid(b) and table.HasValue(LP["Channels"][LP["Channel"]]["Members"],b)==true and b:IsMuted() then
+				b:SetMuted(false)
+			end
+			if IsValid(b) and table.HasValue(LP["Channels"][LP["Channel"]]["Members"],b)==false and b:IsMuted()==false then
+				b:SetMuted(true)
+			end
+		end
+	end
+end
+
 function MunSpeakInit()
 	LP = LocalPlayer()
 	LP["MS"]={}
@@ -17,6 +30,7 @@ end
 function MunSpeakGetChannels()
 	LP = LocalPlayer()
 	LP["Channels"] = net.ReadTable()
+	LP["Channel"] = (LP:GetNWString("Channel") or "Default")
 end
 
 function MunSpeakShowUi()
@@ -112,8 +126,10 @@ function MunSpeakShowUi()
 	
 	local MunPassword = vgui.Create("DTextEntry", MunButtons)
 	MunPassword:SetPos(10,55)
-	MunPassword:SetSize(MunSpeakUI:GetWide()-40,30)
 	MunPassword:SetVisible(true)
+	function MunPassword:Think()
+		MunPassword:SetSize(MunSpeakUI:GetWide()-40,30)
+	end
 	
 	local MunJoinButton = vgui.Create("DButton", MunButtons)
 	MunJoinButton:SetPos(10,10)
@@ -193,8 +209,8 @@ function MunSpeakShowUi()
 	end
 	MunChannelMake.DoClick = function(self)
 		if LP["correct1"] and LP["correct2"] then
+			net.Start("MunSpeakCreateChannel")
 			if MunChannelPass:GetValue()==prevar2 then
-				net.Start("MunSpeakCreateChannel")
 				print(table.ToString({LocalPlayer(),MunChannelName:GetValue(),MunChannelPass:GetValue()}))
 				net.WriteTable({LocalPlayer(),MunChannelName:GetValue(),""})
 			else
@@ -234,7 +250,7 @@ function MunSpeakShowUi()
 	end
 end
 
-
+hook.Add("Tick","MunSpeakMute",MunSpeakCheck)
 hook.Add("InitPostEntity","MunSpeakInit",MunSpeakInit)
 net.Receive( "MunSpeakShowUi", MunSpeakShowUi )
 net.Receive( "MunSpeakChannels", MunSpeakGetChannels )
