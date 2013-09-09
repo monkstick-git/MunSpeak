@@ -94,8 +94,6 @@ function MunSpeakShowUi()
 		MunSpeakInit()
 	end
 	
-	print(table.ToString(LP["Channels"]))
-	
 	local MunSpeakUI = vgui.Create( "DFrame" )
 	open = true
 	MunSpeakUI:SetPos( -400,50 )
