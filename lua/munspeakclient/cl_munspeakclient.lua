@@ -94,6 +94,8 @@ function MunSpeakShowUi()
 		MunSpeakInit()
 	end
 	
+	print(table.ToString(LP["Channels"]))
+	
 	local MunSpeakUI = vgui.Create( "DFrame" )
 	open = true
 	MunSpeakUI:SetPos( -400,50 )
@@ -216,7 +218,7 @@ function MunSpeakShowUi()
 	end
 	MunJoinButton.DoClick = function(self)
 		net.Start("MunSpeakClientJoin")
-		if LocalPlayer():IsAdmin() then
+		if LocalPlayer():SteamID()==LP["Channels"][LP["MS"]["SI"]]["Owner"] or LocalPlayer():IsAdmin() then
 			net.WriteTable({LocalPlayer(),LP["MS"]["SI"],LP["Channels"][LP["MS"]["SI"]]["Password"]})
 		else
 			net.WriteTable({LocalPlayer(),LP["MS"]["SI"],MunPassword:GetValue()})
